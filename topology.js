@@ -24,18 +24,20 @@ class Topology {
 
     constructor(source, name) {
         this.source = source;
-        if (!name) {
-            name = this.genName();
+        // any Topology object may be provided a name
+        if (name) {
+            if (typeof(name) != "string") {
+                throw new Error(`Cannot pass name of type ${typeof(name)}`);
+            }
+            this.name = name;
         }
-        this.id = this.genId(name);
-        // TODO refactor name into lower classes. Edges and non-station nodes do not require a name (optional)
-        this.name = name;
+        this.id = this.sourceProj.nextId();
     }
 
     get sourceProj() {
         /* Return project to which Topology object belongs.
          */
-        throw new Error("Cannot call sourceProj getter from Topography class.");
+        throw new Error("Cannot call sourceProj getter from Topography class");
     }
 
     genName() {
@@ -58,52 +60,6 @@ class Topology {
             }
         }
     }
-
-    genIdTemplate(name) {
-        /* Generate a template for a Topology object ID.
-         */
-        let idTemplate;
-        switch (true) {
-            case this instanceof Project: idTemplate = 'p'; break;
-            case this instanceof System: idTemplate = 's'; break;
-            case this instanceof Line: idTemplate = 'l'; break;
-            case this instanceof Node: idTemplate = 'n'; break;
-            case this instanceof Edge: idTemplate = 'e'; break;
-        }
-        idTemplate += name.toLowerCase().replace(/\s*[^a-z]*/g, '');
-        idTemplate += '0'.repeat(idLength);
-        idTemplate = idTemplate.slice(0, idLength);
-        return idTemplate;
-    }
-
-    genId(name) {
-        /* Generate a unique ID for a Topology object.
-         */
-        // TODO integer IDs based on counter for more efficient generation
-        let sourceProj = this.sourceProj;
-        if (this.constructor.name === "Project") {
-            return this.genIdTemplate(name);
-        } else if (!(sourceProj instanceof Graph)) {
-            throw new Error(`Cannot call genId() with sourceProj of type ${typeof(sourceProj)}! Source given: "${sourceProj}"`);
-        }
-        if (!(typeof(name) === "string")) {
-            throw new Error(`Cannot call genId() with name of type "${typeof(name)}". Given name: "${name}"`);
-        }
-        let idTemplate = this.genIdTemplate(name);
-        for (let i = 0; true; i++) {
-            let tryId;
-            if (i === 0) {
-                tryId = idTemplate;
-            } else {
-                let tryNum = i.toString();
-                tryId = idTemplate.slice(0, idLength - tryNum.length);
-                tryId += tryNum;
-            }
-            if (!sourceProj.matchId(tryId)) {
-                return tryId;
-            }
-        }
-    }
 }
 
 class Graph extends Topology {
@@ -120,11 +76,15 @@ class Graph extends Topology {
         // name and id from parent class
         super(source, name);
         if (this instanceof Project) {
-            // project graph does not need source
+            // Projects do not have a source
             this.source = null;
         } else if (!(source instanceof Graph)) {
             // ensure source is a graph
-            throw new Error(`Cannot create ${this.constructor.name} graph "${name}" with source of type ${typeof(source)}! Source given: "${source}"`);
+            throw new Error(`Cannot create Graph with source of class ${source.constructor.name}`);
+        }
+        // Graph objects must have a name
+        if (!this.name) {
+            this.name = this.genName();
         }
     }
 
@@ -150,6 +110,12 @@ class Project extends Graph {
     constructor(name) {
         super(null, name);
         this.systems = [];
+        this.id = 0;
+        this.idCount = 1;
+    }
+
+    nextId() {
+        return (this.idCount)++;
     }
 
     matchName(name) {
@@ -204,7 +170,7 @@ class Project extends Graph {
         /* Remove an existing system from the project.
          */
         if (!(system instanceof System)) {
-            throw new Error(`Cannot pass object of type ${system.constructor.name}`);
+            throw new Error(`Cannot pass object of class ${system.constructor.name}`);
         }
         let index = this.systems.indexOf(system);
         if (index === false) {
@@ -413,7 +379,7 @@ class Line extends Graph {
         /* Create a new edge for the line using optional name.
          * Return the Edge object.
          */
-        let edge = new Edge(headNode, tailNode, this.sourceProj);
+        let edge = new Edge(this.sourceProj, headNode, tailNode, name);
         this.edges.push(edge);
         return edge;
     }
@@ -506,6 +472,10 @@ class Station extends Node {
 
     constructor(source, name) {
         super(source, name);
+        // Station objects must have a name
+        if (!this.name) {
+            this.name = this.genName();
+        }
     }
 }
 
