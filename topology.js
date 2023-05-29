@@ -3,7 +3,8 @@
  * 2023-04-23
  */
 
-const idLength = 8;
+export {defaultProjName, Project}
+
 const defaultProjName = "New Project";
 
 class Topology {
@@ -31,7 +32,7 @@ class Topology {
             }
             this.name = name;
         }
-        this.id = this.sourceProj.nextId();
+        this.id = this.sourceProj.nextId;
     }
 
     get sourceProj() {
@@ -53,9 +54,9 @@ class Topology {
             throw new Error(`Cannot call genName() with sourceProj of class ${sourceProj.constructor.name}."`);
         }
         let nameTemplate = this.constructor.name;
-        for (let i = 0; true; i++) {
+        for (let i = 1; true; i++) {
             let tryName = `${nameTemplate} ${i}`;
-            if (!(sourceProj.matchName(tryName))) {
+            if (!sourceProj.matchName(tryName)) {
                 return tryName;
             }
         }
@@ -114,7 +115,7 @@ class Project extends Graph {
         this.idCount = 1;
     }
 
-    nextId() {
+    get nextId() {
         return (this.idCount)++;
     }
 
@@ -495,7 +496,7 @@ class Edge extends GraphElement {
         this.tailNode = tailNode;
     }
 
-    connect(fromNode) {
+    traverse(fromNode) {
         /* Return the counterpart of a node via this edge.
          */
         switch (fromNode) {
@@ -505,6 +506,3 @@ class Edge extends GraphElement {
         }
     }
 }
-
-let openProj;
-openProj = new Project();
