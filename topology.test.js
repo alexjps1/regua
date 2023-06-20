@@ -188,7 +188,8 @@ function testEdge() {
     if (noNameEdge.name) {
         throw new Error("Nameless edge did not omit name");
     }
-    let myEdge = myLine.newEdge(myStn1, myStn2, "My Edge");
+    let myStn3 = myLine.newStation();
+    let myEdge = myLine.newEdge(myStn1, myStn3, "My Edge");
     if (myEdge.name !== "My Edge") {
         throw new Error("Edge does not take given name");
     }
@@ -201,18 +202,18 @@ function testEdge() {
     if (myEdge.headNode !== myStn1) {
         throw new Error("Edge head node not properly set");
     }
-    if (myEdge.tailNode !== myStn2) {
+    if (myEdge.tailNode !== myStn3) {
         throw new Error("Edge tail node not properly set");
     }
-    if (noNameEdge.id !== 5 || myEdge.id !== 6) {
+    if (noNameEdge.id !== 5 || myEdge.id !== 7) {
         throw new Error("Edge id not properly set");
     }
 
     // traverse() returns counterpart node
-    if (myEdge.traverse(myStn1) !== myStn2) {
+    if (myEdge.traverse(myStn1) !== myStn3) {
         throw new Error("Edge traverse() does not return node counterpart");
     }
-    if (myEdge.traverse(myStn2) !== myStn1) {
+    if (myEdge.traverse(myStn3) !== myStn1) {
         throw new Error("Edge traverse() does not return node counterpart");
     }
 
@@ -487,14 +488,43 @@ function testIds() {
 // Test for enforcement of graph properties
 
 function testSimpleGraph() {
-    /* Ensure that simple graphs are enforced by add and new methods.
+    /* Ensure that simple graphs are enforced by new methods.
      *
      * Trivia:
      * London Underground's Kennington loop connects a station to itself.
      * Simple graphs are enforced here, so this is not possible for edges.
      */
 
-    // to be implemented
+    // Test for graph loops
+    let london = new Project("London");
+    let northern = london.newSystem("London Underground").newLine("Northern Line");
+    let kennington = northern.newStation("Kennington");
+    let tryError;
+    try {
+        let loop = northern.newEdge(kennington, kennington);
+        tryError = false;
+    } catch {
+        tryError = true;
+    }
+    if (!tryError) {
+        throw new Error(`Can create edge with headNode same as tailNode when this should not be possible`)
+    }
+
+    // Test duplicate edges
+    let waterloo = northern.newStation("Waterloo");
+    let someEdge = northern.newEdge(waterloo, kennington);
+    try {
+        let dupeEdge = northern.newEdge(kennington, waterloo);
+        tryError = false;
+    } catch {
+        tryError = true;
+    }
+    if (!tryError) {
+        throw new Error(`Can create duplicate edge when this should not be possible`);
+    }
+
+    // Success
+    console.debug("testSimpleGraph() successful");
 }
 
 // Run the unit tests

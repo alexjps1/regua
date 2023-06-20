@@ -489,9 +489,22 @@ class Edge extends GraphElement {
         super(source, name);
         if (!(headNode instanceof Node)) {
             throw new Error(`Cannot pass headNode of class ${headNode.constructor.name}`);
-        } else if (!(tailNode instanceof Node)) {
+        }
+        if (!(tailNode instanceof Node)) {
             throw new Error(`Cannot pass tailNode of class ${tailNode.constructor.name}`);
         }
+        // Prevent simple graph rule violations
+        if (headNode === tailNode) {
+            throw new Error(`Edge headNode and tailNode must be different in a simple graph`);
+        }
+        for (let i = 0; i < headNode.edges.length; i++) {
+            if (headNode.edges[i].traverse(headNode) === tailNode) {
+                throw new Error(`Edge headNode and tailNode are already adjacent, no duplicate edges in a simple graph`);
+            }
+        }
+        // Add to nodes' adjacency arrays
+        headNode.edges.push(this);
+        tailNode.edges.push(this);
         this.headNode = headNode;
         this.tailNode = tailNode;
     }
