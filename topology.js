@@ -458,12 +458,24 @@ class GraphElement extends Topology {
 
 class Node extends GraphElement {
     /* A node in a graph.
-     * Can connect to other nodes via edges.
+     * Becomes adjacent to other nodes via edges.
      */
 
     constructor(source, name) {
         super(source, name);
         this.edges = [];
+    }
+
+    edgeTo(toNode) {
+        /* Return edge adjacent to this node and toNode.
+         * If no such edge exists, return null.
+         */
+        for (let i = 0; i < this.edges.length; i++) {
+            if (this.edges[i].traverse(this) === toNode) {
+                return this.edges[i];
+            }
+        }
+        return null;
     }
 }
 
@@ -482,7 +494,7 @@ class Station extends Node {
 
 class Edge extends GraphElement {
     /* An edge in a graph.
-     * Connects exactly two nodes.
+     * Establishes adjacency exactly two nodes.
      */
 
     constructor(source, headNode, tailNode, name) {
@@ -495,12 +507,12 @@ class Edge extends GraphElement {
         }
         // Prevent simple graph rule violations
         if (headNode === tailNode) {
+            // Graph loop forbidden
             throw new Error(`Edge headNode and tailNode must be different in a simple graph`);
         }
-        for (let i = 0; i < headNode.edges.length; i++) {
-            if (headNode.edges[i].traverse(headNode) === tailNode) {
-                throw new Error(`Edge headNode and tailNode are already adjacent, no duplicate edges in a simple graph`);
-            }
+        if (headNode.edgeTo(tailNode)) {
+            // Duplicate edges forbidden
+            throw new Error(`Edge headNode and tailNode are already adjacent, no duplicate edges in a simple graph`);
         }
         // Add to nodes' adjacency arrays
         headNode.edges.push(this);
@@ -515,7 +527,7 @@ class Edge extends GraphElement {
         switch (fromNode) {
             case this.headNode: return this.tailNode;
             case this.tailNode: return this.headNode;
-            default: throw new Error (`Node ${fromNode} is not adjacent to edge`);
+            default: throw new Error(`Node ${fromNode} is not adjacent to edge`);
         }
     }
 }

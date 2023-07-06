@@ -137,10 +137,41 @@ function testNode() {
     }
     if (noNameNode.id !== 3 || myNode.id !== 4) {
         throw new Error("Node id not properly set");
-    }
+    } 
 
     // Success
     console.debug("testNode() successful");
+}
+
+function testNodeMethods() {
+    /* Test that Node methods exhibit expected behavior.
+     */
+    let myProj = new Project();
+    let myLine = myProj.newSystem().newLine();
+    let myStation = myLine.newStation();
+    let myNode1 = myLine.newNode();
+    let myNode2 = myLine.newNode();
+    let myNode3 = myLine.newNode();
+
+    // Adjacencies for 1,2 and 1,3 but not 2,3
+    let myEdge1 = myLine.newEdge(myNode1, myNode2);
+    let myEdge2 = myLine.newEdge(myNode1, myNode3);
+
+    // edgeTo() returns correct edge
+    if (myNode1.edgeTo(myNode2) !== myEdge1) {
+        throw new Error("Node edgeTo() returns incorrect Edge");
+    }
+    if (myNode3.edgeTo(myNode1) !== myEdge2) {
+        throw new Error("Node edgeTo() returns incorrect Edge");
+    }
+    
+    // edgeTo() returns null when no appropriate edge
+    if (myNode2.edgeTo(myNode3) !== null) {
+        throw new Error("Node edgeTo() does not return null when no appropriate edge");
+    }
+    
+    // Success
+    console.debug("testNodeMethods() successful");
 }
 
 function testStation() {
@@ -533,6 +564,7 @@ testProject();
 testSystem();
 testLine();
 testNode();
+testNodeMethods();
 testStation();
 testEdge();
 
