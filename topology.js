@@ -337,6 +337,7 @@ class Line extends Graph {
          * Return the Line object.
          */
         let node = new Node(this.sourceProj, name);
+        node.lines.push(this);
         this.nodes.push(node);
         return node;
     }
@@ -346,6 +347,7 @@ class Line extends Graph {
          * Return the Station object.
          */
         let station = new Station(this.sourceProj, name);
+        station.lines.push(this);
         this.nodes.push(station);
         return station;
     }
@@ -360,6 +362,7 @@ class Line extends Graph {
         if (this.nodes.includes(node)) {
             throw new Error(`Node ${node.name} already exists in line ${this.name}`);
         }
+        node.lines.push(this);
         this.nodes.push(node);
     }
 
@@ -369,11 +372,15 @@ class Line extends Graph {
         if (!(node instanceof Node)) {
             throw new Error(`Cannot pass object of type ${node.constructor.name}`);
         }
-        let index = this.nodes.indexOf(node);
-        if (index === false) {
+        let lineIndex = node.lines.indexOf(this);
+        if (lineIndex === false) {
+            throw new Error(`Line ${this.name} not found in the node.`)
+        }
+        let nodeIndex = this.nodes.indexOf(node);
+        if (nodeIndex === false) {
             throw new Error(`Node ${node.name} not found in the line.`);
         }
-        this.nodes.splice(index, 1);
+        this.nodes.splice(nodeIndex, 1);
     }
 
     newEdge(headNode, tailNode, name) {
@@ -381,6 +388,7 @@ class Line extends Graph {
          * Return the Edge object.
          */
         let edge = new Edge(this.sourceProj, headNode, tailNode, name);
+        edge.lines.push(this);
         this.edges.push(edge);
         return edge;
     }
@@ -395,6 +403,7 @@ class Line extends Graph {
         if (this.nodes.includes(edge)) {
             throw new Error(`Edge ${edge.name} already exists in line ${this.name}`);
         }
+        edge.lines.push(this);
         this.nodes.push(edge);
     }
 
@@ -404,11 +413,15 @@ class Line extends Graph {
         if (!(edge instanceof Edge)) {
             throw new Error(`Cannot pass object of type ${edge.constructor.name}`);
         }
-        let index = this.nodes.indexOf(edge);
-        if (index === false) {
+        let lineIndex = node.lines.indexOf(this);
+        if (lineIndex === false) {
+            throw new Error(`Line ${this.name} not found in the edge.`)
+        }
+        let edgeIndex = this.nodes.indexOf(edge);
+        if (edgeIndex === false) {
             throw new Error(`Edge ${edge.name} not found in the line.`);
         }
-        this.edges.splice(index, 1);
+        this.edges.splice(edgeIndex, 1);
     }
 }
 
@@ -424,6 +437,8 @@ class GraphElement extends Topology {
             // ensure source is a project
             throw new Error(`Cannot create ${this.constructor.name} object with source of class ${source.constructor.name}`);
         }
+        // All graph elements store the lines they're in
+        this.lines = [];
     }
 
     get sourceProj() {

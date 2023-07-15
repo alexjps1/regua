@@ -132,12 +132,17 @@ function testNode() {
     if (myNode.sourceProj !== myProj) {
         throw new Error("Node sourceProj is not properly set");
     }
+    if (!myNode.lines.includes(myLine)) {
+        throw new Error("Node lines array not properly set");
+    }
+
+    // Check IDs assigned properly
     if (myNode.edges.length !== 0) {
         throw new Error("Node edges array not properly set");
     }
     if (noNameNode.id !== 3 || myNode.id !== 4) {
         throw new Error("Node id not properly set");
-    } 
+    }
 
     // Success
     console.debug("testNode() successful");
@@ -236,6 +241,11 @@ function testEdge() {
     if (myEdge.tailNode !== myStn3) {
         throw new Error("Edge tail node not properly set");
     }
+    if (!myEdge.lines.includes(myLine)) {
+        throw new Error("Edge lines array not properly set");
+    }
+
+    // Check IDs set correctly
     if (noNameEdge.id !== 5 || myEdge.id !== 7) {
         throw new Error("Edge id not properly set");
     }
@@ -513,7 +523,7 @@ function testIds() {
     }
 
     // Success
-    console.debug("testIds() successful")
+    console.debug("testIds() successful");
 }
 
 // Test for enforcement of graph properties
